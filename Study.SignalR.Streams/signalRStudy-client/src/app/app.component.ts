@@ -23,12 +23,12 @@ export class AppComponent implements OnInit {
   constructor(public signalRService: SignalRService) { }
 
   ngOnInit() {
-    this.signalRService.startConnection();
-    //this.signalRService.sendMessage();   
-    this.signalRService.receveiveMessage();
+    // this.signalRService.startConnection();
+    // //this.signalRService.sendMessage();   
+    // this.signalRService.receveiveMessage();
 
-    this.playVideo();
-    this.recordVideo();
+    // this.playVideo();
+    // this.recordVideo();
   }
 
   recordVideo() {
@@ -63,7 +63,7 @@ export class AppComponent implements OnInit {
               let buffer = new Uint8Array(arrayBuffer as ArrayBuffer);
               let array = Array.from(buffer);
               //console.log(arrayBuffer);
-              this.signalRService.sendBytes(array);
+              this.signalRService.sendToStream(array);
               //this.onReceivingNewBytes(array);
             });
         };
@@ -90,8 +90,9 @@ export class AppComponent implements OnInit {
     console.log(`media source ${this.mediaSource.readyState}`)
     this.sourceBuffer = this.mediaSource.addSourceBuffer('video/webm; codecs=vp9');
     this.sourceBuffer.mode = 'sequence';
-    this.signalRService.receiveBytes((bytes) => this.onReceivingNewBytes(bytes));
-
+    //this.signalRService.receiveBytes((bytes) => this.onReceivingNewBytes(bytes));
+    this.signalRService.readFromStream((bytes) => this.onReceivingNewBytes(bytes));
+    
     this.sourceBuffer.addEventListener('update', () => {
       console.log("Updated buffer");
       if (this.queue.length > 0 && !this.sourceBuffer.updating) {

@@ -1,5 +1,5 @@
 using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -9,6 +9,7 @@ namespace SignalRStudy.WebApi
     public class ChatHub: Hub, IEnglishLearningHub
     {
         private readonly ILogger<ChatHub> _logger;
+        private static Dictionary<string, IAsyncEnumerable<object[]>> _streams = new Dictionary<string, IAsyncEnumerable<object[]>>(); 
         
         public ChatHub(ILogger<ChatHub> logger)
         {
@@ -24,6 +25,27 @@ namespace SignalRStudy.WebApi
         {
             _logger.Log(LogLevel.Error, "Receive Bytes: " + bytes.Length);
             await Clients.All.SendAsync("ReceiveBytes", bytes);
+        }
+
+        public async Task UploadVideo(string session, IAsyncEnumerable<object[]> stream)
+        {
+            _logger.Log(LogLevel.Error, "In uploader");
+            _streams[session] = stream;
+            await Task.Delay(TimeSpan.FromDays(1));
+        }
+
+        public async IAsyncEnumerable<object[]> StreamVideo(string session)
+        {
+            _logger.Log(LogLevel.Error, "In streamer");
+            if (!_streams.TryGetValue(session, out var stream))
+            {
+                throw new ArgumentException(nameof(session));
+            }
+            
+            await foreach (var chunk in stream)
+            {
+                yield return chunk;
+            }
         }
     }
 }

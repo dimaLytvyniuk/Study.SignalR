@@ -35,7 +35,11 @@ namespace Study.SignalR.Streams
                     .AllowCredentials()));
 
             services.AddControllers();
-            services.AddSignalR().AddHubOptions<ChatHub>(options => options.MaximumReceiveMessageSize = 1_000_000 * 24);
+            services.AddSignalR().AddHubOptions<ChatHub>(options =>
+            {
+                options.MaximumReceiveMessageSize = 1_000_000 * 24;
+                options.EnableDetailedErrors = true;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

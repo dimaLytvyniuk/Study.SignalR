@@ -8,6 +8,7 @@ export class SignalRService {
   private hubConnection: signalR.HubConnection;
   count = 0;
   readyVideo = false;
+  streamSubject = new signalR.Subject();
 
   constructor() { }
 
@@ -21,6 +22,7 @@ export class SignalRService {
       .then(() => {
         console.log('Connection started');
         this.sendMessage();
+        this.startStream()
       })
       .catch(err => console.log('Error while starting connection: ' + err))
   }
@@ -48,5 +50,23 @@ export class SignalRService {
 
   public receiveBytes(callback) {
     this.hubConnection.on('ReceiveBytes', (bytes) => callback(bytes))
+  }
+
+  public startStream() {
+    this.hubConnection.send("UploadVideo", "NewSession", this.streamSubject);
+  }
+
+  public sendToStream(bytes: any) {
+    this.streamSubject.next(bytes);
+  }
+
+  public readFromStream(callback) {
+    this.hubConnection.stream("StreamVideo", "NewSession")
+      .subscribe(
+      {
+        next: (bytes) => callback(bytes),
+        complete: () => { console.error("Stream completed") },
+        error: (err) => { console.error(err) }
+      });
   }
 }
