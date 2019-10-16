@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SignalRStudy.WebApi;
 
 namespace Study.SignalR.Streams
 {
@@ -25,7 +26,16 @@ namespace Study.SignalR.Streams
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options => options.AddPolicy("CorsPolicy",
+                builder => builder
+                    .SetIsOriginAllowed(_ => true)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+                    .WithExposedHeaders("Authorization")));
+
             services.AddControllers();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,12 +47,17 @@ namespace Study.SignalR.Streams
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("CorsPolicy");
+            
             app.UseRouting();
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chatHub", options => options.ApplicationMaxBufferSize = 1000 * 24);
+            });
         }
     }
 }
