@@ -29,13 +29,13 @@ namespace Study.SignalR.Streams
             services.AddCors(options => options.AddPolicy("CorsPolicy",
                 builder => builder
                     .SetIsOriginAllowed(_ => true)
+                    //.WithOrigins("http://localhost:4200")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowCredentials()
-                    .WithExposedHeaders("Authorization")));
+                    .AllowCredentials()));
 
             services.AddControllers();
-            services.AddSignalR();
+            services.AddSignalR().AddHubOptions<ChatHub>(options => options.MaximumReceiveMessageSize = 1_000_000 * 24);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,7 +56,7 @@ namespace Study.SignalR.Streams
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<ChatHub>("/chatHub", options => options.ApplicationMaxBufferSize = 1000 * 24);
+                endpoints.MapHub<ChatHub>("/chatHub");
             });
         }
     }
