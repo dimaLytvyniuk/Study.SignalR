@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as signalR from "@microsoft/signalr";
+import { VideoPartModel } from 'src/app/models/videoPartModel';
 
 @Component({
   selector: 'app-video-streamer',
@@ -50,8 +51,8 @@ export class VideoStreamerComponent implements OnInit {
     this.hubConnection.send("UploadVideo", "NewSession", this.streamSubject);
   }
 
-  public sendToStream(bytes: any) {
-    this.streamSubject.next(bytes);
+  public sendToStream(videoPart: VideoPartModel) {
+    this.streamSubject.next(videoPart);
   }
 
   recordVideo() {
@@ -80,14 +81,15 @@ export class VideoStreamerComponent implements OnInit {
         let recorder = new MediaRecorder(stream, options);
 
         recorder.ondataavailable = (e) => {
-
+          console.log(e.timeStamp);
           new Response(e.data).arrayBuffer()
             .then((arrayBuffer) => {
               let buffer = new Uint8Array(arrayBuffer as ArrayBuffer);
               let array = Array.from(buffer);
+              let videoPartModel = new VideoPartModel(e.timeStamp, array);
+
               //console.log(arrayBuffer);
-              console.log(array);
-              this.sendToStream(array);
+              this.sendToStream(videoPartModel);
               //this.onReceivingNewBytes(array);
             });
         };
